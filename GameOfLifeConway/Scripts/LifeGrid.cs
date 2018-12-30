@@ -8,10 +8,10 @@ namespace GameOfLifeConway
     {
         private int width = 40, heigh = 70;
         private float refreshRate = 1 / 15f;
-        private LifeCell[,] cells = null;
         private IStartupPattern startupPattern;
 
-        private Tuple<int, int>[] neighborsCoordinate =
+        protected LifeCell[,] Cells { get; private set; }
+        protected Tuple<int, int>[] NeighborsCoordinate { get; private set; } = 
         {
             new Tuple<int, int>(-1, 0), // East
             new Tuple<int, int>(1, 0), // West
@@ -37,7 +37,7 @@ namespace GameOfLifeConway
             UpdateGridDefinitions();
             CreateCells();
             UpdateNeighbors();
-            startupPattern.Setup(cells);
+            startupPattern.Setup(Cells);
 
             Device.StartTimer(TimeSpan.FromSeconds(refreshRate), OnTimerTick);
         }
@@ -50,16 +50,16 @@ namespace GameOfLifeConway
 
         protected virtual IEnumerable<LifeCell> GetNeighbors(int x, int y)
         {
-            if (x < 0 || y < 0 || cells == null)
+            if (x < 0 || y < 0 || Cells == null)
                 yield break;
 
-            foreach (var coordinate in neighborsCoordinate)
+            foreach (var coordinate in NeighborsCoordinate)
             {
                 var newX = x + coordinate.Item1;
                 var newY = y + coordinate.Item2;
 
-                if (newX > 0 && newX < cells.GetLength(0) && newY > 0 && newY < cells.GetLength(1))
-                    yield return cells[newX, newY];
+                if (newX > 0 && newX < Cells.GetLength(0) && newY > 0 && newY < Cells.GetLength(1))
+                    yield return Cells[newX, newY];
             }
         }
 
@@ -67,11 +67,11 @@ namespace GameOfLifeConway
         {
             var nextStates = new List<bool>();
 
-            foreach (var cell in cells)
+            foreach (var cell in Cells)
                 nextStates.Add(cell.GetNextState());
 
             int i = 0;
-            foreach (var cell in cells)
+            foreach (var cell in Cells)
             {
                 cell.IsAlive = nextStates[i];
                 i++;
@@ -80,14 +80,14 @@ namespace GameOfLifeConway
 
         protected virtual void SetupStartupPattern()
         {
-            if (cells == null || cells.Length < 1)
+            if (Cells == null || Cells.Length < 1)
                 return;
 
-            for(int x = 0; x < cells.GetLength(0); x++)
+            for(int x = 0; x < Cells.GetLength(0); x++)
             {
-                for(int y = 0; y < cells.GetLength(1); y++)
+                for(int y = 0; y < Cells.GetLength(1); y++)
                 {
-                    cells[x, y].IsAlive = width % (x + 1) > heigh % (y + 1);
+                    Cells[x, y].IsAlive = width % (x + 1) > heigh % (y + 1);
                 }
             }
         
@@ -108,20 +108,20 @@ namespace GameOfLifeConway
 
         private void CreateCells()
         {
-            cells = new LifeCell[width, heigh];
-            for(int x = 0; x < cells.GetLength(0); x++)
+            Cells = new LifeCell[width, heigh];
+            for(int x = 0; x < Cells.GetLength(0); x++)
             {
-                for(int y = 0; y < cells.GetLength(1); y++)
+                for(int y = 0; y < Cells.GetLength(1); y++)
                 {
-                    cells[x, y] = new LifeCell(x, y);
-                    Children.Add(cells[x, y], x, y);
+                    Cells[x, y] = new LifeCell(x, y);
+                    Children.Add(Cells[x, y], x, y);
                 }
             }
         }
 
         private void UpdateNeighbors()
         {
-            foreach(var cell in cells)
+            foreach(var cell in Cells)
             {
                 var neighbors = GetNeighbors(cell.Row, cell.Collumn);
                 cell.Neighbors.AddRange(neighbors);

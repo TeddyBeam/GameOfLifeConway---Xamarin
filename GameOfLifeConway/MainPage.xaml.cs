@@ -14,7 +14,7 @@ namespace GameOfLifeConway
 			InitializeComponent();
 
             var pattern = new RandomPattern();
-            var grid = new LifeGrid(pattern);
+            var grid = new RepeatableBorderLifeGrid(pattern);
 
             Content = grid;
         }
