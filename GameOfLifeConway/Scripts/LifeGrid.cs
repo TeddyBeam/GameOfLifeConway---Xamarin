@@ -9,7 +9,8 @@ namespace GameOfLifeConway
         private int width = 40, heigh = 70;
         private float refreshRate = 1 / 15f;
         private LifeCell[,] cells = null;
-        
+        private IStartupPattern startupPattern;
+
         private Tuple<int, int>[] neighborsCoordinate =
         {
             new Tuple<int, int>(-1, 0), // East
@@ -22,8 +23,12 @@ namespace GameOfLifeConway
             new Tuple<int, int>(1, 1), // Southwest
         };
 
-        public LifeGrid()
+        public LifeGrid(IStartupPattern startupPattern)
         {
+            if (startupPattern == null)
+                return;
+
+            this.startupPattern = startupPattern;
             Padding = new Thickness(8, 8, 5, 5);
             BackgroundColor = Color.White;
             ColumnSpacing = 1d;
@@ -32,7 +37,7 @@ namespace GameOfLifeConway
             UpdateGridDefinitions();
             CreateCells();
             UpdateNeighbors();
-            SetupStartupPattern();
+            startupPattern.Setup(cells);
 
             Device.StartTimer(TimeSpan.FromSeconds(refreshRate), OnTimerTick);
         }
@@ -82,7 +87,7 @@ namespace GameOfLifeConway
             {
                 for(int y = 0; y < cells.GetLength(1); y++)
                 {
-                    cells[x, y].IsAlive = Math.Abs(x - y) % 2 == 0;
+                    cells[x, y].IsAlive = width % (x + 1) > heigh % (y + 1);
                 }
             }
         

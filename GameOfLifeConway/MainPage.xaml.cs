@@ -13,8 +13,10 @@ namespace GameOfLifeConway
 		{
 			InitializeComponent();
 
-            var grid = new LifeGrid();
-            this.Content = grid;
+            var pattern = new RandomPattern();
+            var grid = new LifeGrid(pattern);
+
+            Content = grid;
         }
 	}
 }
