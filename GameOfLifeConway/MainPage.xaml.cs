@@ -12,6 +12,9 @@ namespace GameOfLifeConway
 		public MainPage()
 		{
 			InitializeComponent();
-		}
+
+            var grid = new LifeGrid();
+            this.Content = grid;
+        }
 	}
 }
