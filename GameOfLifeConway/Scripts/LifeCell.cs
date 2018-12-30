@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using Xamarin.Forms;
 
@@ -8,7 +7,7 @@ namespace GameOfLifeConway
     public class LifeCell : BoxView
     {
         private bool isAlive = false;
-        private Color aliveColor = Color.ForestGreen, deadColor = Color.OrangeRed;
+        private Color aliveColor = Color.White, deadColor = Color.Black;
 
         public bool IsAlive
         {
@@ -57,11 +56,15 @@ namespace GameOfLifeConway
 
         public LifeCell(int row, int collumn)
         {
-            BackgroundColor = DeadColor;
-            IsAlive = new Random().Next(0, 4) != 0;
             Row = row;
             Collumn = collumn;
             Neighbors = new List<LifeCell>();
+
+            BackgroundColor = DeadColor;
+
+            var tapGestureRecognizer = new TapGestureRecognizer();
+            tapGestureRecognizer.Tapped += OnCellTapped;
+            GestureRecognizers.Add(tapGestureRecognizer);
         }
 
         /// <summary>
@@ -72,7 +75,12 @@ namespace GameOfLifeConway
             if (Neighbors == null || Neighbors.Count < 1)
                 return false;
 
-            var aliveNeighborsCount = Neighbors.Where(cell => cell.IsAlive).Count();
+            var aliveNeighborsCount = 0;
+            foreach(var cell in Neighbors)
+            {
+                if (cell.IsAlive)
+                    aliveNeighborsCount++;
+            }
 
             if (!IsAlive)
                 return aliveNeighborsCount == 3;
@@ -81,6 +89,11 @@ namespace GameOfLifeConway
                 return false;
 
             return IsAlive;
+        }
+
+        protected virtual void OnCellTapped(object _, EventArgs __)
+        {
+            IsAlive = !IsAlive;
         }
     }
 }

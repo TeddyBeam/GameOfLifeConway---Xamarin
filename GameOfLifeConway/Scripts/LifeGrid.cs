@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Collections.Generic;
 using Xamarin.Forms;
 
@@ -7,10 +6,10 @@ namespace GameOfLifeConway
 {
     public class LifeGrid : Grid
     {
-        private int size = 40;
-        private float refreshRate = 1 / 5f;
+        private int width = 40, heigh = 70;
+        private float refreshRate = 1 / 15f;
         private LifeCell[,] cells = null;
-
+        
         private Tuple<int, int>[] neighborsCoordinate =
         {
             new Tuple<int, int>(-1, 0), // East
@@ -23,29 +22,17 @@ namespace GameOfLifeConway
             new Tuple<int, int>(1, 1), // Southwest
         };
 
-        public int Size
-        {
-            get { return size; }
-            set
-            {
-                if (size == value || size < 1)
-                    return;
-
-                size = value;
-                /// Update all the cells...
-            }
-        }
-
         public LifeGrid()
         {
-            Padding = new Thickness(5, 5, 5, 5);
+            Padding = new Thickness(8, 8, 5, 5);
             BackgroundColor = Color.White;
-            ColumnSpacing = 1.1d;
-            RowSpacing = 1.1d;
+            ColumnSpacing = 1d;
+            RowSpacing = 1d;
 
             UpdateGridDefinitions();
             CreateCells();
             UpdateNeighbors();
+            SetupStartupPattern();
 
             Device.StartTimer(TimeSpan.FromSeconds(refreshRate), OnTimerTick);
         }
@@ -56,22 +43,67 @@ namespace GameOfLifeConway
             return true;
         }
 
-        private void UpdateGridDefinitions()
+        protected virtual IEnumerable<LifeCell> GetNeighbors(int x, int y)
         {
-            var rowDefinitions = new RowDefinitionCollection();
-            var columnDefinitions = new ColumnDefinitionCollection();
-            for (int i = 0; i < Size; i++)
+            if (x < 0 || y < 0 || cells == null)
+                yield break;
+
+            foreach (var coordinate in neighborsCoordinate)
             {
-                columnDefinitions.Add(new ColumnDefinition { Width = 7 });
-                rowDefinitions.Add(new RowDefinition { Height = 7 });
+                var newX = x + coordinate.Item1;
+                var newY = y + coordinate.Item2;
+
+                if (newX > 0 && newX < cells.GetLength(0) && newY > 0 && newY < cells.GetLength(1))
+                    yield return cells[newX, newY];
             }
-            RowDefinitions = rowDefinitions;
+        }
+
+        protected virtual void UpdateCells()
+        {
+            var nextStates = new List<bool>();
+
+            foreach (var cell in cells)
+                nextStates.Add(cell.GetNextState());
+
+            int i = 0;
+            foreach (var cell in cells)
+            {
+                cell.IsAlive = nextStates[i];
+                i++;
+            }
+        }
+
+        protected virtual void SetupStartupPattern()
+        {
+            if (cells == null || cells.Length < 1)
+                return;
+
+            for(int x = 0; x < cells.GetLength(0); x++)
+            {
+                for(int y = 0; y < cells.GetLength(1); y++)
+                {
+                    cells[x, y].IsAlive = Math.Abs(x - y) % 2 == 0;
+                }
+            }
+        
+        }
+
+        private void UpdateGridDefinitions()
+        {           
+            var columnDefinitions = new ColumnDefinitionCollection();
+            for (int i = 0; i < width; i++)
+                columnDefinitions.Add(new ColumnDefinition { Width = 7.625f });
             ColumnDefinitions = columnDefinitions;
+
+            var rowDefinitions = new RowDefinitionCollection();
+            for (int i = 0; i < heigh; i++)
+                rowDefinitions.Add(new RowDefinition { Height = 7.625f });
+            RowDefinitions = rowDefinitions;
         }
 
         private void CreateCells()
         {
-            cells = new LifeCell[Size, Size];
+            cells = new LifeCell[width, heigh];
             for(int x = 0; x < cells.GetLength(0); x++)
             {
                 for(int y = 0; y < cells.GetLength(1); y++)
@@ -88,36 +120,6 @@ namespace GameOfLifeConway
             {
                 var neighbors = GetNeighbors(cell.Row, cell.Collumn);
                 cell.Neighbors.AddRange(neighbors);
-            }
-        }
-
-        private void UpdateCells()
-        {
-            var nextStates = new List<bool>();
-
-            foreach (var cell in cells)
-                nextStates.Add(cell.GetNextState());
-
-            int i = 0;
-            foreach(var cell in cells)
-            {
-                cell.IsAlive = nextStates[i];
-                i++;
-            }
-        }
-
-        protected virtual IEnumerable<LifeCell> GetNeighbors(int x, int y)
-        {
-            if (x < 0 || y < 0 || cells == null)
-                yield break;
-
-            foreach(var coordinate in neighborsCoordinate)
-            {
-                var newX = x + coordinate.Item1;
-                var newY = y + coordinate.Item2;
-
-                if (newX > 0 && x + newX < cells.GetLength(0) && newY > 0 && y + newY < cells.GetLength(1))
-                    yield return cells[newX, newY];
             }
         }
     }
